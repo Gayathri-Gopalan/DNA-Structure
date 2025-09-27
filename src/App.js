@@ -126,22 +126,7 @@ function DNAScene({ dnaSequence, containerRef }) {
     rendererRef.current = renderer;
     containerRef.current.appendChild(renderer.domElement);
 
-    // Enhanced lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-    scene.add(ambientLight);
     
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight1.position.set(10, 10, 10);
-    directionalLight1.castShadow = true;
-    scene.add(directionalLight1);
-
-    const directionalLight2 = new THREE.DirectionalLight(0x8888ff, 0.4);
-    directionalLight2.position.set(-10, -5, -10);
-    scene.add(directionalLight2);
-
-    const pointLight = new THREE.PointLight(0xffffff, 0.6);
-    pointLight.position.set(0, 8, 5);
-    scene.add(pointLight);
 
     // Mouse controls
     let mouseDown = false;
