@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import './index.css';
-
 // DNA base colors
 const BASE_COLORS = {
-  A: 0xFF4444, // Red
-  T: 0x00DDDD, // Cyan
-  G: 0x4444FF, // Blue
-  C: 0x44DD44, // Green
-  U: 0xFFAA00  // Orange
+  A: 0xFF6B35, // Orange-red
+  T: 0x4ECDC4, // Teal
+  G: 0x45B7D1, // Sky blue
+  C: 0x96CEB4, // Mint green
+  U: 0xFFC107  // Amber
 };
 
 // Base pairs with hydrogen bond counts
@@ -185,20 +184,6 @@ function DNAScene({ dnaSequence, containerRef }) {
     renderer.domElement.addEventListener('mousemove', onMouseMove);
     renderer.domElement.addEventListener('wheel', onWheel);
 
-    // Handle window resize
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    };
-
-    window.addEventListener('resize', handleResize);
-
     // Animation loop
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
@@ -227,7 +212,6 @@ function DNAScene({ dnaSequence, containerRef }) {
     animate();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('mousedown', onMouseDown);
       renderer.domElement.removeEventListener('mouseup', onMouseUp);
       renderer.domElement.removeEventListener('mousemove', onMouseMove);
@@ -237,7 +221,7 @@ function DNAScene({ dnaSequence, containerRef }) {
         cancelAnimationFrame(animationIdRef.current);
       }
       
-      if (containerRef.current && renderer.domElement && containerRef.current.contains(renderer.domElement)) {
+      if (containerRef.current && renderer.domElement) {
         containerRef.current.removeChild(renderer.domElement);
       }
       
@@ -407,8 +391,8 @@ function DNAScene({ dnaSequence, containerRef }) {
         return new THREE.Mesh(geometry, material);
       };
 
-      const backbone1 = createBackbone(backbone1Points, 0xDD4444);
-      const backbone2 = createBackbone(backbone2Points, 0xDD4444);
+      const backbone1 = createBackbone(backbone1Points, 0x8B4A9C);
+      const backbone2 = createBackbone(backbone2Points, 0x8B4A9C);
       group.add(backbone1);
       group.add(backbone2);
 
@@ -508,15 +492,15 @@ export default function DNASimulation() {
   return (
     <div className="w-full h-screen bg-gradient-to-b from-gray-900 to-black flex flex-col">
       {/* Header */}
-      <div className="bg-black/90 text-white p-4 text-center border-b border-gray-600 flex-shrink-0">
+      <div className="bg-black/90 text-white p-4 text-center border-b border-gray-600">
         <h1 className="text-3xl font-bold text-cyan-300 mb-2">DNA Structure - Interactive Biology Simulation</h1>
         <div className="text-sm text-gray-300">Explore the DNA double helix structure and base pairing</div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex">
         {/* Left Controls Panel */}
-        <div className="w-80 bg-black/90 text-white p-4 border-r border-gray-600 overflow-y-auto flex-shrink-0">
+        <div className="w-80 bg-black/90 text-white p-4 border-r border-gray-600 overflow-y-auto">
           <div className="space-y-6">
             {gameMode ? (
               <GameMode 
@@ -573,29 +557,19 @@ export default function DNASimulation() {
                 <div>
                   <h3 className="text-lg font-bold mb-3 text-cyan-300">Base Colors</h3>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 bg-red-500 mr-2 rounded"></span>A (Adenine)</div>
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 bg-cyan-400 mr-2 rounded"></span>T (Thymine)</div>
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 bg-blue-500 mr-2 rounded"></span>G (Guanine)</div>
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 bg-green-500 mr-2 rounded"></span>C (Cytosine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#FF6B35'}}></span>A (Adenine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#4ECDC4'}}></span>T (Thymine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#45B7D1'}}></span>G (Guanine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#96CEB4'}}></span>C (Cytosine)</div>
                   </div>
                   
                   <div className="mt-3 pt-2 border-t border-gray-600 text-xs">
                     <div className="font-semibold text-yellow-200 mb-1">H-Bonds:</div>
                     <div className="flex items-center mb-1"><span className="inline-block w-3 h-1 bg-cyan-500 mr-2"></span>A-T: 2 bonds</div>
                     <div className="flex items-center mb-1"><span className="inline-block w-3 h-1 bg-cyan-500 mr-2"></span>G-C: 3 bonds</div>
-                  </div>
-                </div>
-
-                {/* DNA Structure Info */}
-                <div>
-                  <h3 className="text-lg font-bold mb-3 text-cyan-300">DNA Structure Facts</h3>
-                  <div className="text-xs space-y-2">
-                    <div>• Double helix with antiparallel strands</div>
-                    <div>• Sugar-phosphate backbone</div>
-                    <div>• Nitrogenous bases inside</div>
-                    <div>• Major and minor grooves</div>
-                    <div>• 3.4nm spacing between bases</div>
-                    <div>• 10.4 base pairs per turn</div>
+                    <div className="mt-2 pt-1 border-t border-gray-700">
+                      <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#8B4A9C'}}></span>Backbone</div>
+                    </div>
                   </div>
                 </div>
 
@@ -614,7 +588,7 @@ export default function DNASimulation() {
         </div>
 
         {/* 3D Visualization Area */}
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 relative">
           <div ref={containerRef} className="w-full h-full" />
           
           <DNAScene 
@@ -625,7 +599,7 @@ export default function DNASimulation() {
       </div>
 
       {/* Bottom Information Panel */}
-      <div className="bg-black/90 text-white p-4 border-t border-gray-600 flex-shrink-0">
+      <div className="bg-black/90 text-white p-4 border-t border-gray-600">
         <div className="max-w-6xl mx-auto">
           <h4 className="font-bold mb-2 text-cyan-300 text-lg">DNA Double Helix Structure</h4>
           <p className="mb-3 text-gray-200 text-sm">
