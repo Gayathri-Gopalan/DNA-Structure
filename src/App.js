@@ -4,9 +4,9 @@ import './index.css';
 // DNA base colors
 const BASE_COLORS = {
   A: 0xFF6B35, // Orange-red
-  T: 0x4ECDC4, // Teal
-  G: 0x45B7D1, // Sky blue
-  C: 0x96CEB4, // Mint green
+  T: 0xFF1493, // Deep pink
+  G: 0x4169E1, // Royal blue
+  C: 0x32CD32, // Lime green
   U: 0xFFC107  // Amber
 };
 
