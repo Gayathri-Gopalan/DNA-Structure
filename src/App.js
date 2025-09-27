@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import './index.css';
+
 // DNA base colors
 const BASE_COLORS = {
   A: 0xFF6B35, // Orange-red
