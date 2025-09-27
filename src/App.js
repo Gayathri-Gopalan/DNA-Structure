@@ -558,9 +558,9 @@ export default function DNASimulation() {
                   <h3 className="text-lg font-bold mb-3 text-cyan-300">Base Colors</h3>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#FF6B35'}}></span>A (Adenine)</div>
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#4ECDC4'}}></span>T (Thymine)</div>
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#45B7D1'}}></span>G (Guanine)</div>
-                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#96CEB4'}}></span>C (Cytosine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#FF1493'}}></span>T (Thymine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#4169E1'}}></span>G (Guanine)</div>
+                    <div className="flex items-center"><span className="inline-block w-4 h-4 mr-2 rounded" style={{backgroundColor: '#32CD32'}}></span>C (Cytosine)</div>
                   </div>
                   
                   <div className="mt-3 pt-2 border-t border-gray-600 text-xs">
