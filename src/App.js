@@ -1102,7 +1102,7 @@ function DNAScene({seq, containerRef, mutatedPositions = []
   
   useEffect(() => {
     if (!containerRef.current) return;
-    
+    const container = containerRef.current;
     const sc = new THREE.Scene();
     sc.background = new THREE.Color(0x0a0a1a);
     scRef.current = sc;
