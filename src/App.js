@@ -1204,12 +1204,12 @@ function DNAScene({seq, containerRef, mutatedPositions = []
       canvas.removeEventListener('mouseleave', onMouseUp);
       canvas.removeEventListener('wheel', onWheel);
       if (animRef.current) cancelAnimationFrame(animRef.current);
-      if (containerRef.current && rend.domElement && containerRef.current.contains(rend.domElement)) {
-        containerRef.current.removeChild(rend.domElement);
-      }
-      rend.dispose();
-    };
-  }, [containerRef]);
+      if (container && rend.domElement && container.contains(rend.domElement)) {
+      container.removeChild(rend.domElement);
+    }
+    rend.dispose();
+  };
+}, []); 
   
   useEffect(() => {
     if (!scRef.current || !cameraRef.current) return;
