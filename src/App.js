@@ -218,26 +218,33 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
     let positions = [];
     
    if (type === 'sickle-cell') {
-  // Beta-globin gene: Normal codon 6 is GAG (Glu), mutated is GTG (Val)
-  // The mutation occurs at position 17 (codon 6, position 2)
-  const sickleCellSeq = 'ATGGTGCACCTGACTCCTGA'; // 20bp including the mutation site
+  // Beta-globin gene: Normal sequence around codon 6
+  // We'll use a 24bp sequence that includes codons 1-8
+  // Codon 6 is GAG (Glu) normally, GTG (Val) in sickle cell
+  // ATG GTG CAC CTG ACT CCT GAG GAG
+  // Met Val His Leu Thr Pro Glu Glu
+  const normalSeq = 'ATGGTGCACCTGACTCCTGAGGAG'; // 24bp, no premature STOP codons
   
-  if (seqArr.length >= 20) {
-    // Replace first 20 bases with the correct sequence
-    for (let i = 0; i < 20; i++) {
-      seqArr[i] = sickleCellSeq[i];
+  // Update the sequence array with the normal beta-globin sequence
+  if (seqArr.length >= 24) {
+    // Replace first 24 bases with the correct sequence
+    for (let i = 0; i < 24; i++) {
+      seqArr[i] = normalSeq[i];
     }
-    // Apply the A→T mutation at position 16 (0-indexed position 16 = 17th base)
-    seqArr[16] = 'T'; // Changes GAG to GTG
-    log.push('Sickle Cell Anemia: A→T mutation at position 17 (codon 6: GAG→GTG, Glu→Val)');
-    positions.push(16);
   } else {
-    // If sequence is too short, make it 20bp and apply mutation
-    seqArr = sickleCellSeq.split('');
-    seqArr[16] = 'T';
-    log.push('Sickle Cell Anemia: A→T mutation at position 17 (codon 6: GAG→GTG, Glu→Val)');
-    positions.push(16);
+    // If sequence is too short, use the full 24bp sequence
+    seqArr = normalSeq.split('');
   }
+  
+  // Apply the A→T mutation at position 17 (0-indexed: position 16)
+  // This is the 2nd nucleotide of codon 6 (positions 15-17: GAG)
+  // Changing position 16 from A to T: GAG → GTG (Glu → Val)
+  seqArr[16] = 'T';
+  
+  log.push('Sickle Cell Anemia: A→T mutation at position 17 (codon 6: GAG→GTG, Glu→Val)');
+  log.push('Beta-globin gene mutation causing abnormal hemoglobin (HbS)');
+  log.push('Result: Red blood cells become sickle-shaped under low oxygen');
+  positions.push(16);
 }
     
     setMutatedSeq(seqArr.join(''));
@@ -1640,7 +1647,7 @@ const ChemicalModal = ({base, onClose}) => {
 };
 
 export default function DNASimulation() {
-  const [seq, setSeq] = useState('ATGGTGCACCTGACTCCTGA');
+  const [seq, setSeq] = useState('ATGGTGCACCTGACTCCTGAGGAG');
   const [mode, setMode] = useState('explorer');
   const [sound, setSound] = useState(true);
   const [msg, setMsg] = useState(null);
