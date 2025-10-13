@@ -1016,7 +1016,7 @@ function GameMode({ onExitGame, sounds }) {
                 <button onClick={() => start('medium')} className="w-full bg-yellow-600 hover:bg-yellow-700 px-6 py-4 rounded-xl text-white font-bold text-lg">
                   Medium - 3 Lives, 3 Hints
                 </button>
-                <button onClick(() => start('hard')} className="w-full bg-red-600 hover:bg-red-700 px-6 py-4 rounded-xl text-white font-bold text-lg">
+                <button onClick{() => start('hard')} className="w-full bg-red-600 hover:bg-red-700 px-6 py-4 rounded-xl text-white font-bold text-lg">
                   Hard - 1 Life, 2 Hints
                 </button>
               </div>
