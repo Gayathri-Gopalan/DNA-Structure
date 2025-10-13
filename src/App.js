@@ -9,35 +9,54 @@ const BASE_PAIRS = {
   C: { complement: 'G', hBonds: 3 } 
 };
 
-// Genetic code for amino acid translation
+// Genetic code for amino acid translation (mRNA codons with U, not T)
 const GENETIC_CODE = {
-  'TTT': 'Phe', 'TTC': 'Phe', 'TTA': 'Leu', 'TTG': 'Leu',
-  'TCT': 'Ser', 'TCC': 'Ser', 'TCA': 'Ser', 'TCG': 'Ser',
-  'TAT': 'Tyr', 'TAC': 'Tyr', 'TAA': 'STOP', 'TAG': 'STOP',
-  'TGT': 'Cys', 'TGC': 'Cys', 'TGA': 'STOP', 'TGG': 'Trp',
-  'CTT': 'Leu', 'CTC': 'Leu', 'CTA': 'Leu', 'CTG': 'Leu',
-  'CCT': 'Pro', 'CCC': 'Pro', 'CCA': 'Pro', 'CCG': 'Pro',
-  'CAT': 'His', 'CAC': 'His', 'CAA': 'Gln', 'CAG': 'Gln',
-  'CGT': 'Arg', 'CGC': 'Arg', 'CGA': 'Arg', 'CGG': 'Arg',
-  'ATT': 'Ile', 'ATC': 'Ile', 'ATA': 'Ile', 'ATG': 'Met',
-  'ACT': 'Thr', 'ACC': 'Thr', 'ACA': 'Thr', 'ACG': 'Thr',
-  'AAT': 'Asn', 'AAC': 'Asn', 'AAA': 'Lys', 'AAG': 'Lys',
-  'AGT': 'Ser', 'AGC': 'Ser', 'AGA': 'Arg', 'AGG': 'Arg',
-  'GTT': 'Val', 'GTC': 'Val', 'GTA': 'Val', 'GTG': 'Val',
-  'GCT': 'Ala', 'GCC': 'Ala', 'GCA': 'Ala', 'GCG': 'Ala',
-  'GAT': 'Asp', 'GAC': 'Asp', 'GAA': 'Glu', 'GAG': 'Glu',
-  'GGT': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly'
+  'UUU': 'Phe', 'UUC': 'Phe', 'UUA': 'Leu', 'UUG': 'Leu',
+  'UCU': 'Ser', 'UCC': 'Ser', 'UCA': 'Ser', 'UCG': 'Ser',
+  'UAU': 'Tyr', 'UAC': 'Tyr', 'UAA': 'STOP', 'UAG': 'STOP',
+  'UGU': 'Cys', 'UGC': 'Cys', 'UGA': 'STOP', 'UGG': 'Trp',
+  'CUU': 'Leu', 'CUC': 'Leu', 'CUA': 'Leu', 'CUG': 'Leu',
+  'CCU': 'Pro', 'CCC': 'Pro', 'CCA': 'Pro', 'CCG': 'Pro',
+  'CAU': 'His', 'CAC': 'His', 'CAA': 'Gln', 'CAG': 'Gln',
+  'CGU': 'Arg', 'CGC': 'Arg', 'CGA': 'Arg', 'CGG': 'Arg',
+  'AUU': 'Ile', 'AUC': 'Ile', 'AUA': 'Ile', 'AUG': 'Met',
+  'ACU': 'Thr', 'ACC': 'Thr', 'ACA': 'Thr', 'ACG': 'Thr',
+  'AAU': 'Asn', 'AAC': 'Asn', 'AAA': 'Lys', 'AAG': 'Lys',
+  'AGU': 'Ser', 'AGC': 'Ser', 'AGA': 'Arg', 'AGG': 'Arg',
+  'GUU': 'Val', 'GUC': 'Val', 'GUA': 'Val', 'GUG': 'Val',
+  'GCU': 'Ala', 'GCC': 'Ala', 'GCA': 'Ala', 'GCG': 'Ala',
+  'GAU': 'Asp', 'GAC': 'Asp', 'GAA': 'Glu', 'GAG': 'Glu',
+  'GGU': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly'
 };
 
-const translateToProtein = (dnaSeq) => {
+// Step 1: Transcribe DNA to mRNA (complementary base pairing with T→U)
+const transcribeDNAtoRNA = (dnaSeq) => {
+  const transcription = {
+    'A': 'U',  // Adenine → Uracil
+    'T': 'A',  // Thymine → Adenine
+    'G': 'C',  // Guanine → Cytosine
+    'C': 'G'   // Cytosine → Guanine
+  };
+  return dnaSeq.split('').map(base => transcription[base] || 'N').join('');
+};
+
+// Step 2: Translate mRNA to protein using genetic code
+const translateRNAtoProtein = (mrnaSeq) => {
   const protein = [];
-  for (let i = 0; i < dnaSeq.length - 2; i += 3) {
-    const codon = dnaSeq.substring(i, i + 3);
+  for (let i = 0; i < mrnaSeq.length - 2; i += 3) {
+    const codon = mrnaSeq.substring(i, i + 3);
     if (codon.length === 3) {
       protein.push(GENETIC_CODE[codon] || '?');
     }
   }
   return protein;
+};
+
+// Combined function: DNA → mRNA → Protein
+const translateDNAtoProtein = (dnaSeq) => {
+  const mrna = transcribeDNAtoRNA(dnaSeq);
+  const protein = translateRNAtoProtein(mrna);
+  return { mrna, protein };
 };
 
 const facts = [
@@ -144,8 +163,8 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
   const calculateStats = (seq) => {
     const gcCount = (seq.match(/[GC]/g) || []).length;
     const gcContent = ((gcCount / seq.length) * 100).toFixed(1);
-    const protein = translateToProtein(seq);
-    return { gcContent, length: seq.length, protein };
+    const { mrna, protein } = translateDNAtoProtein(seq);
+    return { gcContent, length: seq.length, mrna, protein };
   };
   
   const generateMutations = () => {
@@ -198,32 +217,28 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
     let log = [];
     let positions = [];
     
-    if (type === 'sickle-cell') {
-      if (seqArr.length >= 18) {
-        const codonStart = 15;
-        const codon = seqArr.slice(codonStart, codonStart + 3).join('');
-        if (codon === 'GAG') {
-          seqArr[codonStart + 1] = 'T';
-          log.push('Sickle Cell: GAG→GTG at codon 6 (Glu→Val)');
-          positions.push(codonStart + 1);
-        } else {
-          seqArr[15] = 'G';
-          seqArr[16] = 'A';
-          seqArr[17] = 'G';
-          seqArr[16] = 'T';
-          log.push('Sickle Cell: GAG→GTG mutation at position 16 (Glu→Val)');
-          positions.push(16);
-        }
-      } else {
-        if (seqArr.length >= 6) {
-          const oldBase = seqArr[5];
-          const newBase = oldBase === 'A' ? 'T' : 'A';
-          seqArr[5] = newBase;
-          log.push(`Sickle Cell Demo: ${oldBase}→${newBase} at position 6`);
-          positions.push(5);
-        }
-      }
+   if (type === 'sickle-cell') {
+  // Beta-globin gene: Normal codon 6 is GAG (Glu), mutated is GTG (Val)
+  // The mutation occurs at position 17 (codon 6, position 2)
+  const sickleCellSeq = 'ATGGTGCACCTGACTCCTGA'; // 20bp including the mutation site
+  
+  if (seqArr.length >= 20) {
+    // Replace first 20 bases with the correct sequence
+    for (let i = 0; i < 20; i++) {
+      seqArr[i] = sickleCellSeq[i];
     }
+    // Apply the A→T mutation at position 16 (0-indexed position 16 = 17th base)
+    seqArr[16] = 'T'; // Changes GAG to GTG
+    log.push('Sickle Cell Anemia: A→T mutation at position 17 (codon 6: GAG→GTG, Glu→Val)');
+    positions.push(16);
+  } else {
+    // If sequence is too short, make it 20bp and apply mutation
+    seqArr = sickleCellSeq.split('');
+    seqArr[16] = 'T';
+    log.push('Sickle Cell Anemia: A→T mutation at position 17 (codon 6: GAG→GTG, Glu→Val)');
+    positions.push(16);
+  }
+}
     
     setMutatedSeq(seqArr.join(''));
     setMutationLog(log);
@@ -247,7 +262,7 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
               <ol className="text-blue-100 text-xs space-y-1 list-decimal list-inside">
                 <li>Choose mutation type (Substitution/Insertion/Deletion)</li>
                 <li>Click "Generate Random" or "Sickle Cell Anemia"</li>
-                <li>Review sequence changes and protein impact below</li>
+                <li>Review DNA→mRNA→Protein changes below</li>
                 <li>Click "Show in 3D" to visualize mutations (glowing bases)</li>
                 <li>Mutated bases will pulse in the 3D structure</li>
               </ol>
@@ -308,17 +323,17 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
               <>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-black/30 rounded-xl p-3 border border-green-500">
-                    <div className="text-green-300 text-xs mb-2 font-bold">Original Sequence</div>
+                    <div className="text-green-300 text-xs mb-2 font-bold">Original DNA</div>
                     <div className="text-white font-mono text-sm break-all mb-2">{sequence}</div>
                     <div className="text-xs text-gray-400">
-                      Length: {originalStats.length} bp | GC Content: {originalStats.gcContent}%
+                      Length: {originalStats.length} bp | GC: {originalStats.gcContent}%
                     </div>
                   </div>
                   <div className="bg-black/30 rounded-xl p-3 border border-red-500">
-                    <div className="text-red-300 text-xs mb-2 font-bold">Mutated Sequence</div>
+                    <div className="text-red-300 text-xs mb-2 font-bold">Mutated DNA</div>
                     <div className="text-white font-mono text-sm break-all mb-2">{mutatedSeq}</div>
                     <div className="text-xs text-gray-400">
-                      Length: {mutatedStats.length} bp | GC Content: {mutatedStats.gcContent}%
+                      Length: {mutatedStats.length} bp | GC: {mutatedStats.gcContent}%
                     </div>
                   </div>
                 </div>
@@ -337,6 +352,24 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
                     <div className="bg-gray-800/50 p-3 rounded">
                       <div className="text-gray-400">Mutations</div>
                       <div className="text-white font-bold">{mutationLog.length}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800/50 rounded-lg p-3 border border-purple-500/50 mb-3">
+                    <h5 className="text-purple-300 font-bold text-sm mb-2">mRNA Transcription</h5>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <div className="text-green-300 font-semibold mb-1">Original mRNA:</div>
+                        <div className="font-mono bg-gray-900 p-2 rounded text-green-200 break-all">
+                          {originalStats.mrna}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-red-300 font-semibold mb-1">Mutated mRNA:</div>
+                        <div className="font-mono bg-gray-900 p-2 rounded text-red-200 break-all">
+                          {mutatedStats.mrna}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
@@ -636,36 +669,34 @@ function DNABuilder({ onSequenceBuilt, onExit, sounds }) {
               <p className="text-white font-bold text-sm">{currentStep}</p>
             </div>
             
-            <div className="bg-black/30 rounded-xl p-4 mb-4">
-              <div className="flex gap-4 justify-center items-start">
+            <div className="bg-black/30 rounded-xl p-3 mb-3">
+              <div className="flex gap-3 justify-center items-center">
                 <div className="flex-1">
-                  <p className="text-center text-gray-300 text-sm mb-3 font-semibold">Drag Bases:</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <p className="text-center text-gray-300 text-xs mb-2 font-semibold">Drag Bases:</p>
+                  <div className="grid grid-cols-4 gap-2">
                     {bases.map(base => (
                       <div key={base} draggable="true" onDragStart={(e) => handleDragStart(e, base, 'base')}
-                        className="h-20 rounded-xl font-bold text-3xl flex items-center justify-center cursor-move hover:scale-105 border-4 border-white/30 transition-transform shadow-lg"
+                        className="h-12 rounded-lg font-bold text-xl flex items-center justify-center cursor-move hover:scale-105 border-2 border-white/30 transition-transform"
                         style={{ backgroundColor: base === 'A' ? '#FF6B35' : base === 'T' ? '#FF1493' : base === 'G' ? '#4169E1' : '#32CD32', color: 'white' }}>
                         {base}
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 text-xs text-gray-400 text-center">
-                    <p>A ↔ T (2 bonds)</p>
-                    <p>G ↔ C (3 bonds)</p>
-                  </div>
                 </div>
                 
-                <div className="w-px bg-gray-600 self-stretch"></div>
+                <div className="w-px bg-gray-600 h-12"></div>
                 
                 <div>
-                  <p className="text-center text-gray-300 text-sm mb-3 font-semibold">Drag H-Bond:</p>
+                  <p className="text-center text-gray-300 text-xs mb-2 font-semibold">H-Bond:</p>
                   <div draggable="true" onDragStart={(e) => handleDragStart(e, 'H', 'bond')}
-                    className="h-20 w-28 rounded-xl flex items-center justify-center cursor-move hover:scale-105 border-4 border-cyan-400 bg-cyan-600/80 transition-transform shadow-lg"
+                    className="h-12 w-16 rounded-lg flex items-center justify-center cursor-move hover:scale-105 border-2 border-cyan-400 bg-cyan-600/80 transition-transform"
                     style={{ touchAction: 'none' }}>
-                    <div className="w-2 h-14 bg-white rounded-sm"></div>
+                    <div className="w-1.5 h-8 bg-white rounded-sm"></div>
                   </div>
-                  <p className="text-xs text-gray-400 text-center mt-2">Add one at a time</p>
                 </div>
+              </div>
+              <div className="mt-2 text-xs text-gray-400 text-center">
+                A↔T (2) | G↔C (3)
               </div>
             </div>
           </div>
@@ -985,7 +1016,7 @@ function GameMode({ onExitGame, sounds }) {
                 <button onClick={() => start('medium')} className="w-full bg-yellow-600 hover:bg-yellow-700 px-6 py-4 rounded-xl text-white font-bold text-lg">
                   Medium - 3 Lives, 3 Hints
                 </button>
-                <button onClick={() => start('hard')} className="w-full bg-red-600 hover:bg-red-700 px-6 py-4 rounded-xl text-white font-bold text-lg">
+                <button onClick(() => start('hard')} className="w-full bg-red-600 hover:bg-red-700 px-6 py-4 rounded-xl text-white font-bold text-lg">
                   Hard - 1 Life, 2 Hints
                 </button>
               </div>
@@ -1078,7 +1109,7 @@ function GameMode({ onExitGame, sounds }) {
                   {cur.hint}
                 </div>
               )}
-              {fb && (
+{fb && (
                 <div className={`mt-4 p-5 rounded-xl text-center font-bold ${fb.includes('Correct') ? 'bg-green-600' : 'bg-red-600'} text-white whitespace-pre-line`}>
                   {fb}
                 </div>
@@ -1545,7 +1576,7 @@ const ChemicalModal = ({base, onClose}) => {
         <line x1="95" y1="95" x2="95" y2="125" stroke="#000" strokeWidth="3"/>
         <line x1="95" y1="125" x2="120" y2="140" stroke="#000" strokeWidth="3"/>
         <line x1="98" y1="125" x2="123" y2="140" stroke="#000" strokeWidth="3"/>
-        <line x1="145" y1="125" x2="170" y2="140" stroke="#000" strokeWidth="3"/>
+        <line x1="145"y1="125" x2="170" y2="140" stroke="#000" strokeWidth="3"/>
         <line x1="148" y1="128" x2="173" y2="143" stroke="#000" strokeWidth="3"/>
         <line x1="120" y1="80" x2="120" y2="55" stroke="#000" strokeWidth="3"/>
         <line x1="120" y1="140" x2="120" y2="165" stroke="#000" strokeWidth="3"/>
@@ -1609,7 +1640,7 @@ const ChemicalModal = ({base, onClose}) => {
 };
 
 export default function DNASimulation() {
-  const [seq, setSeq] = useState('ATCGATCGATCGATCG');
+  const [seq, setSeq] = useState('ATGGTGCACCTGACTCCTGA');
   const [mode, setMode] = useState('explorer');
   const [sound, setSound] = useState(true);
   const [msg, setMsg] = useState(null);
