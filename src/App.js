@@ -29,17 +29,11 @@ const GENETIC_CODE = {
   'GGU': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly'
 };
 
-// Step 1: Transcribe DNA to mRNA (complementary base pairing with T→U)
+// Step 1: Transcribe DNA to mRNA (T→U conversion for coding strand)
 const transcribeDNAtoRNA = (dnaSeq) => {
-  const transcription = {
-    'A': 'U',  // Adenine → Uracil
-    'T': 'A',  // Thymine → Adenine
-    'G': 'C',  // Guanine → Cytosine
-    'C': 'G'   // Cytosine → Guanine
-  };
-  return dnaSeq.split('').map(base => transcription[base] || 'N').join('');
+  // DNA coding strand (5'→3') has same sequence as mRNA except T→U
+  return dnaSeq.replace(/T/g, 'U');
 };
-
 // Step 2: Translate mRNA to protein using genetic code
 const translateRNAtoProtein = (mrnaSeq) => {
   const protein = [];
@@ -152,6 +146,7 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
   const [showComparison, setShowComparison] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const [mutatedPositions, setMutatedPositions] = useState([]);
+const [isSickleCellMode, setIsSickleCellMode] = useState(false);
   const containerRef = useRef();
   const BASES = ['A', 'T', 'C', 'G'];
   
@@ -216,37 +211,27 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
     let seqArr = sequence.split('');
     let log = [];
     let positions = [];
-    
    if (type === 'sickle-cell') {
-  // Beta-globin gene: Normal sequence around codon 6
-  // We'll use a 24bp sequence that includes codons 1-8
-  // Codon 6 is GAG (Glu) normally, GTG (Val) in sickle cell
-  // ATG GTG CAC CTG ACT CCT GAG GAG
-  // Met Val His Leu Thr Pro Glu Glu
-  const normalSeq = 'ATGGTGCACCTGACTCCTGAGGAG'; // 24bp, no premature STOP codons
+  // Beta-globin gene with GAG at codon 6
+  // Normal: ATG GTG CAT CTG ACT GAG GAG
+  // Amino:  Met Val His Leu Thr Glu Glu
+  const normalSeq = 'ATGGTGCATCTGACTGAGGAG';  // 21bp
   
-  // Update the sequence array with the normal beta-globin sequence
-  if (seqArr.length >= 24) {
-    // Replace first 24 bases with the correct sequence
-    for (let i = 0; i < 24; i++) {
-      seqArr[i] = normalSeq[i];
-    }
-  } else {
-    // If sequence is too short, use the full 24bp sequence
-    seqArr = normalSeq.split('');
-  }
+  // Start fresh with the normal sequence (don't use existing sequence)
+  let seqArr = normalSeq.split('');
   
   // Apply the A→T mutation at position 17 (0-indexed: position 16)
-  // This is the 2nd nucleotide of codon 6 (positions 15-17: GAG)
-  // Changing position 16 from A to T: GAG → GTG (Glu → Val)
-  seqArr[16] = 'T';
+  // This changes codon 6 from GAG (Glu) to GTG (Val)
+  // Codon 6 is at indices 15-17: G[A]G → G[T]G
+  seqArr[16] = 'T';  // Change the middle nucleotide of codon 6
   
+  setMutatedSeq(seqArr.join(''));
   log.push('Sickle Cell Anemia: A→T mutation at position 17 (codon 6: GAG→GTG, Glu→Val)');
   log.push('Beta-globin gene mutation causing abnormal hemoglobin (HbS)');
   log.push('Result: Red blood cells become sickle-shaped under low oxygen');
-  positions.push(16);
+  positions.push(16);  // 0-indexed position of the mutation
+setIsSickleCellMode(true); //
 }
-    
     setMutatedSeq(seqArr.join(''));
     setMutationLog(log);
     setMutatedPositions(positions);
@@ -264,66 +249,118 @@ function MutationGenerator({ sequence, onApplyMutation, onExit, sounds }) {
           <div className="bg-purple-900 p-6 rounded-xl border-2 border-purple-500">
             <h3 className="text-3xl font-bold text-yellow-300 mb-4 text-center">DNA Mutation Generator</h3>
             
-            <div className="bg-blue-900/50 border-2 border-blue-500 rounded-lg p-3 mb-4">
-              <p className="text-blue-200 text-sm font-bold mb-2">How to Use:</p>
-              <ol className="text-blue-100 text-xs space-y-1 list-decimal list-inside">
-                <li>Choose mutation type (Substitution/Insertion/Deletion)</li>
-                <li>Click "Generate Random" or "Sickle Cell Anemia"</li>
-                <li>Review DNA→mRNA→Protein changes below</li>
-                <li>Click "Show in 3D" to visualize mutations (glowing bases)</li>
-                <li>Mutated bases will pulse in the 3D structure</li>
-              </ol>
-            </div>
+           <div className="bg-blue-900/50 border-2 border-blue-500 rounded-lg p-3 mb-4">
+  <p className="text-blue-200 text-sm font-bold mb-2">How to Use:</p>
+  <ol className="text-blue-100 text-xs space-y-1 list-decimal list-inside">
+    <li><strong>Random Mutations:</strong> Choose type → Set count → Click "Generate Random"</li>
+    <li><strong>Sickle Cell Anemia:</strong> Click button directly (uses pre-defined mutation)</li>
+    <li>Review DNA→mRNA→Protein changes below</li>
+    <li>Click "Show in 3D" to visualize mutations (glowing bases)</li>
+    <li>Click "Reset" to clear and start over</li>
+  </ol>
+  <div className="mt-2 p-2 bg-yellow-900/40 border border-yellow-500/50 rounded">
+    <p className="text-yellow-200 text-xs">
+      ⚠️ <strong>Note:</strong> Sickle Cell preset uses a specific beta-globin sequence (21bp) with an A→T mutation at position 17. Mutation type and count settings are ignored.
+    </p>
+  </div>
+</div>
             
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-black/30 rounded-xl p-4">
-                <label className="text-cyan-300 font-semibold mb-2 block">Mutations: {mutationCount}</label>
-                <input type="range" min="1" max="5" value={mutationCount} onChange={e => setMutationCount(Number(e.target.value))} className="w-full" />
-              </div>
-              
-              <div className="bg-black/30 rounded-xl p-4">
-                <label className="text-cyan-300 font-semibold mb-3 block">Type:</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['Substitution', 'Insertion', 'Deletion'].map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setMutationType(t)}
-                      className={`p-2 rounded-lg font-semibold text-sm ${mutationType === t ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300'}`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+  <div className={`bg-black/30 rounded-xl p-4 ${isSickleCellMode ? 'opacity-50' : ''}`}>
+    <label className="text-cyan-300 font-semibold mb-2 block">
+      Mutations: {mutationCount}
+      {isSickleCellMode && <span className="text-xs text-yellow-300 ml-2">(Disabled)</span>}
+    </label>
+    <input 
+      type="range" 
+      min="1" 
+      max="5" 
+      value={mutationCount} 
+      onChange={e => setMutationCount(Number(e.target.value))} 
+      className="w-full" 
+      disabled={isSickleCellMode}
+    />
+  </div>
+  
+  <div className={`bg-black/30 rounded-xl p-4 ${isSickleCellMode ? 'opacity-50' : ''}`}>
+    <label className="text-cyan-300 font-semibold mb-3 block">
+      Type:
+      {isSickleCellMode && <span className="text-xs text-yellow-300 ml-2">(Disabled)</span>}
+    </label>
+    <div className="grid grid-cols-3 gap-2">
+      {['Substitution', 'Insertion', 'Deletion'].map(t => (
+        <button
+          key={t}
+          onClick={() => setMutationType(t)}
+          disabled={isSickleCellMode}
+          className={`p-2 rounded-lg font-semibold text-sm ${
+            mutationType === t 
+              ? 'bg-cyan-600 text-white' 
+              : isSickleCellMode 
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+          }`}
+        >
+          {t}
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
             
-            <div className="grid grid-cols-4 gap-3 mb-4">
-              <button onClick={generateMutations} className="bg-yellow-600 hover:bg-yellow-700 px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight">
-                Generate<br/>Random
-              </button>
+           <div className="grid grid-cols-4 gap-3 mb-4">
+  <button 
+    onClick={generateMutations} 
+    disabled={isSickleCellMode}
+    className={`px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight ${
+      isSickleCellMode 
+        ? 'bg-gray-600 cursor-not-allowed' 
+        : 'bg-yellow-600 hover:bg-yellow-700'
+    }`}
+  >
+    Generate<br/>Random
+  </button>
+  
+  {/* ← ADD THIS SICKLE CELL BUTTON */}
+  <button 
+    onClick={() => applyPreset('sickle-cell')} 
+    className={`px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight ${
+      isSickleCellMode 
+        ? 'bg-green-600 hover:bg-green-700 ring-2 ring-yellow-400' 
+        : 'bg-orange-600 hover:bg-orange-700'
+    }`}
+  >
+    {isSickleCellMode ? '✓ Active' : 'Sickle Cell'}<br/>{isSickleCellMode ? 'Mode' : 'Anemia'}
+  </button>
+  
+  <button 
+    onClick={() => { 
+      if (mutatedSeq !== sequence) { 
+        setShow3D(true);
+        sounds.playSuccess(); 
+      }
+    }} 
+    className="bg-green-600 hover:bg-green-700 px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight"
+  >
+    Show<br/>in 3D
+  </button>
+  
+  
+</div>
               <button 
-                onClick={() => applyPreset('sickle-cell')} 
-                className="bg-orange-600 hover:bg-orange-700 px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight"
-              >
-                Sickle Cell<br/>Anemia
-              </button>
-              <button 
-                onClick={() => { 
-                  if (mutatedSeq !== sequence) { 
-                    setShow3D(true);
-                    sounds.playSuccess(); 
-                  }
-                }} 
-                className="bg-green-600 hover:bg-green-700 px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight"
-              >
-                Show<br/>in 3D
-              </button>
-              <button 
-                onClick={() => { setMutatedSeq(sequence); setMutationLog([]); setShowComparison(false); setShow3D(false); setMutatedPositions([]); sounds.playClick(); }} 
-                className="bg-red-600 hover:bg-red-700 px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight"
-              >
-                Reset
-              </button>
+  onClick={() => { 
+    setMutatedSeq(sequence); 
+    setMutationLog([]); 
+    setShowComparison(false); 
+    setShow3D(false); 
+    setMutatedPositions([]);
+    setIsSickleCellMode(false); // ← ADD THIS
+    sounds.playClick(); 
+  }} 
+  className="bg-red-600 hover:bg-red-700 px-3 py-3 rounded-xl font-bold text-white text-sm leading-tight"
+>
+  Reset
+</button>
             </div>
             
             {showComparison && (
@@ -1647,7 +1684,7 @@ const ChemicalModal = ({base, onClose}) => {
 };
 
 export default function DNASimulation() {
-  const [seq, setSeq] = useState('ATGGTGCACCTGACTCCTGAGGAG');
+  const [seq, setSeq] = useState('ATGGTGCATCTGACTGAGGAG');
   const [mode, setMode] = useState('explorer');
   const [sound, setSound] = useState(true);
   const [msg, setMsg] = useState(null);
