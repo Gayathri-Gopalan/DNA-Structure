@@ -469,8 +469,7 @@ setIsSickleCellMode(true); //
         
           <button onClick={onExit} className="w-full bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-xl text-white font-bold">Back to Explorer</button>
         </div>
-      </div>
-      <>
+      
       <div className="w-1/2 relative bg-gray-950">
         {show3D && mutatedSeq ? (
           <>
@@ -497,7 +496,6 @@ setIsSickleCellMode(true); //
           </div>
         )}
       </div>
-          </>
     </div>
   );
 }
